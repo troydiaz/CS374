@@ -74,7 +74,7 @@ void searchMoviesbyLang(struct movies *head, char *language){
         temp = temp->next;
     }
 
-    if(flag = 0){
+    if(flag == 0){
         printf("No data about movies released in %s\n", language);
     }
     printf("\n");
