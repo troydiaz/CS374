@@ -30,7 +30,7 @@ void searchMoviesbyLang(struct movies *head, char *language){
         temp = temp->next;
     }
 
-    if(flag = 0){
+    if(flag == 0){
         printf("No data about movies released in %s\n", language);
     }
     printf("\n");
@@ -124,7 +124,7 @@ int getYear(){
 }
 
 char* getLang(){
-    char* language;
+    char* language = NULL;
 
     printf("Enter the language for which you want to see movies: ");
     scanf("%s", language);
@@ -174,7 +174,7 @@ struct movies *processFile(char *filePath){
     char *currLine = NULL;
     size_t len = 0;
     ssize_t nread;
-    char *token;
+    char *token = NULL;
 
     // Head and tails of linked list
     struct movies *head = NULL;
@@ -282,23 +282,4 @@ void displayMovieCount(struct movies *head, char *filePath){
     printf("\n");
     printf("Processed file %s and parsed data for %d movies.\n", filePath, count);
     printf("\n");
-}
-
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
-    {
-        printf("You must provide the name of the file to process\n");
-        printf("Example usage: ./movies movies_info.csv\n");
-        return EXIT_FAILURE;
-    }
-    struct movies *list = processFile(argv[1]);
-
-    displayMovieCount(list, argv[1]);
-    
-    displayOptions(list);
-
-    freeList(list);
-
-    return EXIT_SUCCESS;
 }

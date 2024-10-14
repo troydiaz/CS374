@@ -5,6 +5,11 @@
 
 #ifndef _MOVIES_H
 #define _MOVIES_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 /*
  * Structure used to represent a movies list.
  */

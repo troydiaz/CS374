@@ -20,6 +20,11 @@
 *       ./main movies_info.csv
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "movies.h"
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
