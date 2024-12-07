@@ -1,3 +1,9 @@
+/*********************************************************************** 
+** Program Filename: dec_server.c
+** Author: Troy Diaz
+** Date: 
+** Description: 
+*********************************************************************/
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,97 +15,150 @@
 #include "dialog.c"
 #include "otp.c"
 
-void error(const char *msg) {
-    perror(msg);
+#define MAX_BUFFER_SIZE 256
+
+void error(const char *errorMsg);
+void setupAddressStruct(struct sockaddr_in *sockAddr, int portNum);
+void handle_connection(int clientSocket);
+int await_next_connection(int listeningSocket);
+void dialog(int clientSocket);
+int main(int argCount, char *argValues[]);
+
+/********************************************************************* 
+** Function: error
+** Description: 
+** Parameters: const char *msg - error message string
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void error(const char *errorMsg) {
+    perror(errorMsg);
     exit(1);
 }
 
-void setupAddressStruct(struct sockaddr_in *address, int portNumber) {
-    memset((char *)address, '\0', sizeof(*address));
-    address->sin_family = AF_INET;
-    address->sin_port = htons(portNumber);
-    address->sin_addr.s_addr = INADDR_ANY;
+/********************************************************************* 
+** Function: setupAddressStruct
+** Description: 
+** Parameters: struct sockaddr_in *address - pointer to address struct,
+**             int portNumber - port to bind
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void setupAddressStruct(struct sockaddr_in *sockAddr, int portNum) {
+    memset((char *)sockAddr, '\0', sizeof(*sockAddr));
+    sockAddr->sin_family = AF_INET;
+    sockAddr->sin_port = htons(portNum);
+    sockAddr->sin_addr.s_addr = INADDR_ANY;
 }
 
-void handle_connection(int connection_socket);
-
-int await_next_connection(int listen_socket) {
-    int connection_socket;
-    struct sockaddr_in client_address;
-    socklen_t size_of_client_info = sizeof(client_address);
-    connection_socket = accept(listen_socket, (struct sockaddr *)&client_address, &size_of_client_info);
-    if (connection_socket < 0) {
+/********************************************************************* 
+** Function: await_next_connection
+** Description: 
+** Parameters: int listen_socket - socket file descriptor for listening
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+int await_next_connection(int listeningSocket) {
+    int clientSocket;
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrSize = sizeof(clientAddr);
+    clientSocket = accept(listeningSocket, (struct sockaddr *)&clientAddr, &clientAddrSize);
+    if (clientSocket < 0) {
         error("ERROR on accept");
     }
-    pid_t pid = fork();
-    if (pid == -1) {
+    pid_t childPid = fork();
+    if (childPid == -1) {
         perror("fork failed");
         exit(1);
-    } else if (pid == 0) {
+    } else if (childPid == 0) {
         printf("[dec_server]: Child process started.\n");
-        handle_connection(connection_socket);
+        handle_connection(clientSocket);
         printf("[dec_server]: Child process closed.\n");
         exit(0);
     }
-    return pid;
+    return childPid;
 }
 
-#define MAX_BUFFER_SIZE 256
-
-void dialog(int connection_socket);
-
-void handle_connection(int connection_socket) {
-    dialog(connection_socket);
-    close(connection_socket);
+/********************************************************************* 
+** Function: handle_connection
+** Description: 
+** Parameters: int connection_socket - socket file descriptor for client connection
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void handle_connection(int clientSocket) {
+    dialog(clientSocket);
+    close(clientSocket);
 }
 
-void dialog(int connection_socket) {
-    char* client_hello = await_receive_message(connection_socket);
-    if (strcmp(client_hello, "dec_client hello") != 0) {
+/********************************************************************* 
+** Function: dialog
+** Description: 
+** Parameters: int connection_socket - socket file descriptor for client connection
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void dialog(int clientSocket) {
+    char* clientGreeting = await_receive_message(clientSocket);
+    if (strcmp(clientGreeting, "dec_client hello") != 0) {
         fprintf(stderr, "[dec_server]: Client didn't say hello. Closing connection.\n");
-        await_send_message(connection_socket, "dec_server hello");
+        await_send_message(clientSocket, "dec_server hello");
         usleep(100000);
-        close(connection_socket);
+        close(clientSocket);
         exit(1);
     }
-    await_send_message(connection_socket, "dec_server hello");
+    await_send_message(clientSocket, "dec_server hello");
 
-    char* ciphertext = await_receive_message(connection_socket);
-    char* key = await_receive_message(connection_socket);
-    char* plaintext = decrypt_message(ciphertext, key);
+    char* encryptedText = await_receive_message(clientSocket);
+    char* decryptionKey = await_receive_message(clientSocket);
+    char* decryptedText = decrypt_message(encryptedText, decryptionKey);
 
-    printf("[dec_server]: Decrypted message: %d/%d/%d\n", strlen(plaintext), strlen(key), strlen(ciphertext));
+    printf("[dec_server]: Decrypted message: %d/%d/%d\n", strlen(decryptedText), strlen(decryptionKey), strlen(encryptedText));
 
-    usleep(FLUSH_DELAY + strlen(plaintext) * 2);
-    await_send_message(connection_socket, plaintext);
+    usleep(FLUSH_DELAY + strlen(decryptedText) * 2);
+    await_send_message(clientSocket, decryptedText);
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "USAGE: %s port\n", argv[0]);
+/********************************************************************* 
+** Function: main
+** Description: 
+** Parameters: int argc - number of arguments,
+**             char *argv[] - array of arguments
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+int main(int argCount, char *argValues[]) {
+    if (argCount < 2) {
+        fprintf(stderr, "USAGE: %s port\n", argValues[0]);
         exit(1);
     }
 
-    int listenSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (listenSocket < 0) {
+    int listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (listeningSocket < 0) {
         error("ERROR opening socket");
     }
 
-    struct sockaddr_in serverAddress;
-    setupAddressStruct(&serverAddress, atoi(argv[1]));
+    struct sockaddr_in serverSockAddr;
+    setupAddressStruct(&serverSockAddr, atoi(argValues[1]));
 
-    if (bind(listenSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
+    if (bind(listeningSocket, (struct sockaddr *)&serverSockAddr, sizeof(serverSockAddr)) < 0) {
         error("ERROR on binding");
     }
 
-    listen(listenSocket, 5);
+    listen(listeningSocket, 5);
 
     setup_dialog("dec_server", 0);
 
     while (1) {
-        await_next_connection(listenSocket);
+        await_next_connection(listeningSocket);
     }
 
-    close(listenSocket);
+    close(listeningSocket);
     return 0;
 }

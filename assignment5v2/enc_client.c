@@ -1,3 +1,9 @@
+/*********************************************************************** 
+** Program Filename: enc_client.c
+** Author: Troy Diaz
+** Date: 
+** Description: 
+*********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,107 +14,145 @@
 #include <netdb.h>
 #include "dialog.c"
 
-void error(const char *msg) {
-    fprintf(stderr, "%s", msg);
+void error(const char *error_msg);
+void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host_name);
+char* getFileContents(char* file_name);
+int main(int argument_count, char *argument_values[]);
+
+/********************************************************************* 
+** Function: error
+** Description: 
+** Parameters: const char *error_msg - error message to display
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void error(const char *error_msg) {
+    fprintf(stderr, "%s", error_msg);
     exit(1);
 }
 
-void setupAddressStruct(struct sockaddr_in *address, int portNumber, char *hostname) {
-    memset((char *)address, '\0', sizeof(*address));
-    address->sin_family = AF_INET;
-    address->sin_port = htons(portNumber);
-    struct hostent *hostInfo = gethostbyname(hostname);
-    if (hostInfo == NULL) {
+/********************************************************************* 
+** Function: setupAddressStruct
+** Description: 
+** Parameters: struct sockaddr_in *server_address - server address structure,
+**             int port - port to connect to,
+**             char *host_name - hostname of the server
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host_name) {
+    memset((char *)server_address, '\0', sizeof(*server_address));
+    server_address->sin_family = AF_INET;
+    server_address->sin_port = htons(port);
+    struct hostent *host_info = gethostbyname(host_name);
+    if (host_info == NULL) {
         fprintf(stderr, "ERROR: no such host\n");
         exit(1);
     }
-    memcpy((char *)&address->sin_addr.s_addr, hostInfo->h_addr_list[0], hostInfo->h_length);
+    memcpy((char *)&server_address->sin_addr.s_addr, host_info->h_addr_list[0], host_info->h_length);
 }
 
-char* getFileContents(char* filename);
-
-int main(int argc, char *argv[]) {
-    char* messageFileName = argv[1];
-    char* message = getFileContents(messageFileName);
-    message[strcspn(message,"\r\n")] = '\0';
-
-    char* keyFileName = argv[2];
-    char* key = getFileContents(keyFileName);
-
-    if (strlen(message) > strlen(key)) {
-        fprintf(stderr, "ERROR: The key is too short.\n");
+/********************************************************************* 
+** Function: getFileContents
+** Description: 
+** Parameters: char *file_name - name of the file to read
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char* getFileContents(char* file_name) {
+    FILE* file = fopen(file_name, "r");
+    if (file == NULL) {
+        fprintf(stderr, "ERROR opening file: %s\n", file_name);
         exit(1);
     }
 
-    char node_name[] = "enc_client";
-    int debug = 0;
-    setup_dialog(node_name, debug);
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-    int socketFD, portNumber;
-    struct sockaddr_in serverAddress;
-    char buffer[256];
-
-    if (argc < 4) {
-        fprintf(stderr, "USAGE: %s hostname port\n", argv[0]);
-        exit(1);
-    }
-
-    int port = atoi(argv[3]);
-    char hostname[] = "localhost";
-
-    socketFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketFD < 0) {
-        error("ERROR opening socket");
-    }
-
-    setupAddressStruct(&serverAddress, port, hostname);
-
-    if (connect(socketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
-        error("ERROR connecting");
-    }
-
-    await_send_message(socketFD, "enc_client hello");
-    char* response = await_receive_message(socketFD);
-    if (strcmp(response, "enc_server hello") != 0) {
-        fprintf(stderr, "ERROR: Server validation failed. Response: %s\n", response);
-        usleep(100000);
-        exit(1);
-    }
-
-    await_send_message(socketFD, message);
-    await_send_message(socketFD, key);
-
-    usleep(FLUSH_DELAY + strlen(message) * 2);
-    char* ciphertext = await_receive_message(socketFD);
-
-    printf("%s\n", ciphertext);
-
-    close(socketFD);
-
-    return 0;
-}
-
-char* getFileContents(char* filename) {
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-        fprintf(stderr, "ERROR opening file: %s\n", filename);
-        exit(1);
-    }
-
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char* string = malloc(fsize + 1);
-    if (string == NULL) {
+    char* content = malloc(file_size + 1);
+    if (content == NULL) {
         fprintf(stderr, "ERROR allocating memory\n");
         exit(1);
     }
 
-    fread(string, fsize, 1, f);
-    fclose(f);
+    fread(content, file_size, 1, file);
+    fclose(file);
 
-    string[fsize] = '\0';
+    content[file_size] = '\0';
 
-    return string;
+    return content;
+}
+
+/********************************************************************* 
+** Function: main
+** Description: 
+** Parameters: int argument_count - number of arguments,
+**             char *argument_values[] - argument list
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+int main(int argument_count, char *argument_values[]) {
+    char* message_file_name = argument_values[1];
+    char* message_content = getFileContents(message_file_name);
+    message_content[strcspn(message_content, "\r\n")] = '\0';
+
+    char* key_file_name = argument_values[2];
+    char* key_content = getFileContents(key_file_name);
+
+    if (strlen(message_content) > strlen(key_content)) {
+        fprintf(stderr, "ERROR: The key is too short.\n");
+        exit(1);
+    }
+
+    char node_identifier[] = "enc_client";
+    int debug_mode = 0;
+    setup_dialog(node_identifier, debug_mode);
+
+    int client_socket, port_number;
+    struct sockaddr_in server_config;
+    char temporary_buffer[256];
+
+    if (argument_count < 4) {
+        fprintf(stderr, "USAGE: %s hostname port\n", argument_values[0]);
+        exit(1);
+    }
+
+    int server_port = atoi(argument_values[3]);
+    char server_hostname[] = "localhost";
+
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_socket < 0) {
+        error("ERROR opening socket");
+    }
+
+    setupAddressStruct(&server_config, server_port, server_hostname);
+
+    if (connect(client_socket, (struct sockaddr *)&server_config, sizeof(server_config)) < 0) {
+        error("ERROR connecting");
+    }
+
+    await_send_message(client_socket, "enc_client hello");
+    char* server_response = await_receive_message(client_socket);
+    if (strcmp(server_response, "enc_server hello") != 0) {
+        fprintf(stderr, "ERROR: Server validation failed. Response: %s\n", server_response);
+        usleep(100000);
+        exit(1);
+    }
+
+    await_send_message(client_socket, message_content);
+    await_send_message(client_socket, key_content);
+
+    usleep(FLUSH_DELAY + strlen(message_content) * 2);
+    char* encrypted_message = await_receive_message(client_socket);
+
+    printf("%s\n", encrypted_message);
+
+    close(client_socket);
+
+    return 0;
 }

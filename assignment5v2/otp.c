@@ -1,76 +1,141 @@
+/*********************************************************************** 
+** Program Filename: otp.c
+** Author: Troy Diaz
+** Date: 
+** Description: 
+*********************************************************************/
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-char normalize(char c) {
-    if (c == ' ') {
+char normalize(char input_char);
+char project(char input_char);
+char encrypt_char(char plain_char, char key_char);
+char decrypt_char(char cipher_char, char key_char);
+char* encrypt_message(char* plaintext, char* key);
+char* decrypt_message(char* ciphertext, char* key);
+
+/********************************************************************* 
+** Function: normalize
+** Description: 
+** Parameters: char input_char - character to normalize
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char normalize(char input_char) {
+    if (input_char == ' ') {
         return 0;
     } else {
-        return c - 64;
+        return input_char - 64;
     }
 }
 
-char project(char c) {
-    if (c == 0) {
+/********************************************************************* 
+** Function: project
+** Description: 
+** Parameters: char input_char - character to project
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char project(char input_char) {
+    if (input_char == 0) {
         return ' ';
     } else {
-        return c + 64;
+        return input_char + 64;
     }
 }
 
-char encrypt_char(char c, char k) {
-    char n_c = normalize(c);
-    char n_k = normalize(k);
-    char n_e = (n_c + n_k) % 27;
-    return project(n_e);
+/********************************************************************* 
+** Function: encrypt_char
+** Description: 
+** Parameters: char plain_char - character to encrypt,
+**             char key_char - key character
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char encrypt_char(char plain_char, char key_char) {
+    char normalized_plain = normalize(plain_char);
+    char normalized_key = normalize(key_char);
+    char encrypted_normalized = (normalized_plain + normalized_key) % 27;
+    return project(encrypted_normalized);
 }
 
-char decrypt_char(char e, char k) {
-    char n_e = normalize(e);
-    char n_k = normalize(k);
-    char n_c = (n_e - n_k) % 27;
-    if (n_c < 0) {
-        n_c += 27;
+/********************************************************************* 
+** Function: decrypt_char
+** Description: 
+** Parameters: char cipher_char - character to decrypt,
+**             char key_char - key character
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char decrypt_char(char cipher_char, char key_char) {
+    char normalized_cipher = normalize(cipher_char);
+    char normalized_key = normalize(key_char);
+    char decrypted_normalized = (normalized_cipher - normalized_key) % 27;
+    if (decrypted_normalized < 0) {
+        decrypted_normalized += 27;
     }
-    return project(n_c);
+    return project(decrypted_normalized);
 }
 
-char* encrypt_message(char* message, char* key) {
-    int message_size = strlen(message);
-    int key_size = strlen(key);
+/********************************************************************* 
+** Function: encrypt_message
+** Description: 
+** Parameters: char* plaintext - message to encrypt,
+**             char* key - encryption key
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char* encrypt_message(char* plaintext, char* key) {
+    int plaintext_length = strlen(plaintext);
+    int key_length = strlen(key);
 
-    char* encrypted = malloc(message_size + 1);
-    memset(encrypted, '\0', message_size + 1);
+    char* encrypted_message = malloc(plaintext_length + 1);
+    memset(encrypted_message, '\0', plaintext_length + 1);
 
-    int i = 0;
-    while (i < message_size) {
-        char c = message[i];
-        char k = key[i];
-        encrypted[i] = encrypt_char(c, k);
-        i++;
+    int index = 0;
+    while (index < plaintext_length) {
+        char plain_char = plaintext[index];
+        char key_char = key[index];
+        encrypted_message[index] = encrypt_char(plain_char, key_char);
+        index++;
     }
 
-    return encrypted;
+    return encrypted_message;
 }
 
-char* decrypt_message(char* encrypted, char* key) {
-    int message_size = strlen(encrypted);
-    int key_size = strlen(key);
+/********************************************************************* 
+** Function: decrypt_message
+** Description: 
+** Parameters: char* ciphertext - message to decrypt,
+**             char* key - decryption key
+**
+** Pre-Conditions: 
+** Post-Conditions: 
+*********************************************************************/
+char* decrypt_message(char* ciphertext, char* key) {
+    int ciphertext_length = strlen(ciphertext);
+    int key_length = strlen(key);
 
-    if (message_size > key_size) {
+    if (ciphertext_length > key_length) {
         fprintf(stderr, "Key is too short.\n");
         exit(1);
     }
 
-    char* decrypted = malloc(message_size + 1);
-    memset(decrypted, '\0', message_size + 1);
+    char* decrypted_message = malloc(ciphertext_length + 1);
+    memset(decrypted_message, '\0', ciphertext_length + 1);
 
-    int i = 0;
-    while (i < message_size) {
-        char e = encrypted[i];
-        char k = key[i];
-        decrypted[i] = decrypt_char(e, k);
-        i++;
+    int index = 0;
+    while (index < ciphertext_length) {
+        char cipher_char = ciphertext[index];
+        char key_char = key[index];
+        decrypted_message[index] = decrypt_char(cipher_char, key_char);
+        index++;
     }
-    return decrypted;
+    return decrypted_message;
 }
