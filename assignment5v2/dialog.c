@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: dialog.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <assert.h>
@@ -65,11 +65,11 @@ void await_send(int connection_socket, char *message) {
     int messageLength = strlen(message);
     int charsWritten = send(connection_socket, message, messageLength, 0);
     if (charsWritten < 0) {
-        perror("Error sending message");
+        perror("DIALOG: Error sending message");
         exit(1);  
     }
     if (charsWritten < messageLength) {
-        printf("Warning: Incomplete message sent\n");
+        printf("DIALOG: Warning: Incomplete message sent\n");
     }
 }
 
@@ -111,7 +111,7 @@ char* await_receive(int connection_socket, char *buffer, int buffer_size) {
 
     int charsRead = recv(connection_socket, buffer, buffer_size - 1, 0);
     if (charsRead < 0) {
-        perror("Error receiving message");
+        perror("DIALOG: Error receiving message");
         exit(1);  
     }
     if (charsRead == 0) {

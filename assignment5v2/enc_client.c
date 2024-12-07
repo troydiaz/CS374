@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: enc_client.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <stdio.h>
@@ -48,7 +48,7 @@ void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host
     server_address->sin_port = htons(port);
     struct hostent *host_info = gethostbyname(host_name);
     if (host_info == NULL) {
-        fprintf(stderr, "ERROR: no such host\n");
+        fprintf(stderr, "ENC_CLIENT: ERROR: no such host\n");
         exit(1);
     }
     memcpy((char *)&server_address->sin_addr.s_addr, host_info->h_addr_list[0], host_info->h_length);
@@ -65,7 +65,7 @@ void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host
 char* getFileContents(char* file_name) {
     FILE* file = fopen(file_name, "r");
     if (file == NULL) {
-        fprintf(stderr, "ERROR opening file: %s\n", file_name);
+        fprintf(stderr, "ENC_CLIENT: ERROR opening file: %s\n", file_name);
         exit(1);
     }
 
@@ -75,7 +75,7 @@ char* getFileContents(char* file_name) {
 
     char* content = malloc(file_size + 1);
     if (content == NULL) {
-        fprintf(stderr, "ERROR allocating memory\n");
+        fprintf(stderr, "ENC_CLIENT: ERROR allocating memory\n");
         exit(1);
     }
 
@@ -105,7 +105,7 @@ int main(int argument_count, char *argument_values[]) {
     char* key_content = getFileContents(key_file_name);
 
     if (strlen(message_content) > strlen(key_content)) {
-        fprintf(stderr, "ERROR: The key is too short.\n");
+        fprintf(stderr, "ENC_CLIENT: ERROR: The key is too short.\n");
         exit(1);
     }
 
@@ -118,7 +118,7 @@ int main(int argument_count, char *argument_values[]) {
     char temporary_buffer[256];
 
     if (argument_count < 4) {
-        fprintf(stderr, "USAGE: %s hostname port\n", argument_values[0]);
+        fprintf(stderr, "ENC_CLIENT: USAGE: %s hostname port\n", argument_values[0]);
         exit(1);
     }
 
@@ -127,19 +127,19 @@ int main(int argument_count, char *argument_values[]) {
 
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket < 0) {
-        error("ERROR opening socket");
+        error("ENC_CLIENT: ERROR opening socket");
     }
 
     setupAddressStruct(&server_config, server_port, server_hostname);
 
     if (connect(client_socket, (struct sockaddr *)&server_config, sizeof(server_config)) < 0) {
-        error("ERROR connecting");
+        error("ENC_CLIENT: ERROR connecting");
     }
 
     await_send_message(client_socket, "enc_client hello");
     char* server_response = await_receive_message(client_socket);
     if (strcmp(server_response, "enc_server hello") != 0) {
-        fprintf(stderr, "ERROR: Server validation failed. Response: %s\n", server_response);
+        fprintf(stderr, "ENC_CLIENT: ERROR: Server validation failed. Response: %s\n", server_response);
         usleep(100000);
         exit(1);
     }

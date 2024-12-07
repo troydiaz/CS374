@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: keygen.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <stdio.h>
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]);
 *********************************************************************/
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "Please enter a key length.\n");
+        fprintf(stderr, "KEYGEN: Please enter a key length.\n");
         exit(1);
     }
 

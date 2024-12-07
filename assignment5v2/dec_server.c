@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: dec_server.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <assert.h>
@@ -67,16 +67,16 @@ int await_next_connection(int listeningSocket) {
     socklen_t clientAddrSize = sizeof(clientAddr);
     clientSocket = accept(listeningSocket, (struct sockaddr *)&clientAddr, &clientAddrSize);
     if (clientSocket < 0) {
-        error("ERROR on accept");
+        error("DEC_SERVER: ERROR on accept");
     }
     pid_t childPid = fork();
     if (childPid == -1) {
-        perror("fork failed");
+        perror("DEC_SERVER: fork failed");
         exit(1);
     } else if (childPid == 0) {
-        printf("[dec_server]: Child process started.\n");
+        printf("DEC_SERVER: Child process started.\n");
         handle_connection(clientSocket);
-        printf("[dec_server]: Child process closed.\n");
+        printf("DEC_SERVER: Child process closed.\n");
         exit(0);
     }
     return childPid;
@@ -106,7 +106,7 @@ void handle_connection(int clientSocket) {
 void dialog(int clientSocket) {
     char* clientGreeting = await_receive_message(clientSocket);
     if (strcmp(clientGreeting, "dec_client hello") != 0) {
-        fprintf(stderr, "[dec_server]: Client didn't say hello. Closing connection.\n");
+        fprintf(stderr, "DEC_SERVER: Client didn't say hello. Closing connection.\n");
         await_send_message(clientSocket, "dec_server hello");
         usleep(100000);
         close(clientSocket);
@@ -118,7 +118,7 @@ void dialog(int clientSocket) {
     char* decryptionKey = await_receive_message(clientSocket);
     char* decryptedText = decrypt_message(encryptedText, decryptionKey);
 
-    printf("[dec_server]: Decrypted message: %d/%d/%d\n", strlen(decryptedText), strlen(decryptionKey), strlen(encryptedText));
+    printf("DEC_SERVER: Decrypted message: %d/%d/%d\n", strlen(decryptedText), strlen(decryptionKey), strlen(encryptedText));
 
     usleep(FLUSH_DELAY + strlen(decryptedText) * 2);
     await_send_message(clientSocket, decryptedText);
@@ -141,14 +141,14 @@ int main(int argCount, char *argValues[]) {
 
     int listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listeningSocket < 0) {
-        error("ERROR opening socket");
+        error("DEC_SERVER: ERROR opening socket");
     }
 
     struct sockaddr_in serverSockAddr;
     setupAddressStruct(&serverSockAddr, atoi(argValues[1]));
 
     if (bind(listeningSocket, (struct sockaddr *)&serverSockAddr, sizeof(serverSockAddr)) < 0) {
-        error("ERROR on binding");
+        error("DEC_SERVER: ERROR on binding");
     }
 
     listen(listeningSocket, 5);

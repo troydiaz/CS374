@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: enc_server.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <assert.h>
@@ -67,17 +67,17 @@ int await_next_connection(int server_socket) {
 
     client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_addr_len);
     if (client_socket < 0) {
-        error("ERROR on accept");
+        error("ENC_SERVER: ERROR on accept");
     }
 
     pid_t child_pid = fork();
     if (child_pid == -1) {
-        perror("forking failed");
+        perror("ENC_SERVER: forking failed");
         exit(1);
     } else if (child_pid == 0) {
-        printf("Child process started.\n");
+        printf("ENC_SERVER: Child process started.\n");
         handle_connection(client_socket);
-        printf("Child process closed.\n");
+        printf("ENC_SERVER: Child process closed.\n");
         exit(0);
     }
 
@@ -108,20 +108,20 @@ void handle_connection(int client_socket) {
 void dialog(int client_socket) {
     char* client_greeting = await_receive_message(client_socket);
     if (strcmp(client_greeting, "enc_client hello") != 0) {
-        fprintf(stderr, "Client did not say hello. Closing connection.\n");
+        fprintf(stderr, "ENC_SERVER: Client did not say hello. Closing connection.\n");
         await_send_message(client_socket, "enc_server hello");
         usleep(100000);
         close(client_socket);
         exit(1);
     }
-    printf("Client said hello.\n");
+    printf("ENC_SERVER: Client said hello.\n");
     await_send_message(client_socket, "enc_server hello");
 
     char* received_plaintext = await_receive_message(client_socket);
     char* received_key = await_receive_message(client_socket);
     char* encrypted_text = encrypt_message(received_plaintext, received_key);
 
-    printf("plaintext len: %d, key len: %d, ciphertext len: %d\n", strlen(received_plaintext), strlen(received_key), strlen(encrypted_text));
+    printf("ENC_SERVER: plaintext len: %d, key len: %d, ciphertext len: %d\n", strlen(received_plaintext), strlen(received_key), strlen(encrypted_text));
 
     usleep(FLUSH_DELAY + strlen(encrypted_text) * 2);
     await_send_message(client_socket, encrypted_text);
@@ -141,19 +141,19 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in server_config;
 
     if (argc < 2) {
-        fprintf(stderr, "USAGE: %s port\n", argv[0]);
+        fprintf(stderr, "ENC_SERVER: USAGE: %s port\n", argv[0]);
         exit(1);
     }
 
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket < 0) {
-        error("ERROR opening socket");
+        error("ENC_SERVER: ERROR opening socket");
     }
 
     setupAddressStruct(&server_config, atoi(argv[1]));
 
     if (bind(server_socket, (struct sockaddr *)&server_config, sizeof(server_config)) < 0) {
-        error("ERROR on binding");
+        error("ENC_SERVER: ERROR on binding");
     }
 
     listen(server_socket, 5);

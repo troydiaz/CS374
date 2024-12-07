@@ -19,23 +19,23 @@ key20 exists!
 #-----------------------------------------
 #enc_client plaintext1 key20 $encport
 #10 POINTS: Should return error about too-short key
-ERROR: The key is too short.
+ENC_CLIENT: ERROR: The key is too short.
 
 #-----------------------------------------
 #enc_client plaintext1 key70000 $encport
 #20 POINTS: Should return encrypted version of plaintext1
-WEAKNMAVCKHT GYHFJFFHEBMKYYFTWZQEKEN
-Child process started.
-Client said hello.
-plaintext len: 36, key len: 70001, ciphertext len: 36
-Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 36, key len: 70001, ciphertext len: 36
+ENC_SERVER: Child process closed.
+XOFBJSXCRPSHSHSGWISNZBFHQ MOODLAVCHA
 
 #-----------------------------------------
 #enc_client plaintext1 key70000 $encport > ciphertext1
-Child process started.
-Client said hello.
-plaintext len: 36, key len: 70001, ciphertext len: 36
-Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 36, key len: 70001, ciphertext len: 36
+ENC_SERVER: Child process closed.
 #10 POINTS: ciphertext1 must exist
 ciphertext1 exists!
 
@@ -48,83 +48,90 @@ ciphertext1 exists!
 
 #-----------------------------------------
 #5 POINTS: ciphertext1 should look encrypted
-WEAKNMAVCKHT GYHFJFFHEBMKYYFTWZQEKEN
+XOFBJSXCRPSHSHSGWISNZBFHQ MOODLAVCHA
 
 #-----------------------------------------
 #dec_client ciphertext1 key70000 $encport
 #5 POINTS: Should fail giving error that dec_client cannot use enc_server
-./p5testscript: line 89: 228836 Segmentation fault      (core dumped) ./dec_client ciphertext1 key70000 $encport
+ENC_SERVER: Client did not say hello. Closing connection.
+DEC_CLIENT: Error: Invalid decryption server. Response: enc_server hello
+ENC_SERVER: Child process started.
 
 #-----------------------------------------
 #20 POINTS: should return decrypted ciphertext1 that matches source
 #cat plaintext1
 THE RED GOOSE FLIES AT MIDNIGHT STOP
 #dec_client ciphertext1 key70000 $decport
-./p5testscript: line 96: 228845 Segmentation fault      (core dumped) ./dec_client ciphertext1 key70000 $decport
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 36/70001/36
+DEC_SERVER: Child process closed.
+THE RED GOOSE FLIES AT MIDNIGHT STOP
 
 #-----------------------------------------
 #dec_client ciphertext1 key70000 $decport > plaintext1_a
-./p5testscript: line 100: 228850 Segmentation fault      (core dumped) ./dec_client ciphertext1 key70000 $decport > plaintext1_a
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 36/70001/36
+DEC_SERVER: Child process closed.
 #10 POINTS: plaintext1_a must exist
-plaintext1_a DOES NOT EXIST
+plaintext1_a exists!
 
 #-----------------------------------------
 #cmp plaintext1 plaintext1_a
 #5 POINTS: plaintext1 must be the same as plaintext1_a:
 #echo $? should be == 0, which means the cmp succeeded!
-cmp: plaintext1_a: No such file or directory
-2
+0
 
 #-----------------------------------------
 #20 POINTS: concurrent test of encryption - look for 4 properly-sized ciphertext# files, or 5 where the 5th is 0 bytes
 #5 POINTS: Should be only one error about plaintext5 being bad
 Ten second sleep, your program must complete in this time
-Child process started.
-Client said hello.
-plaintext len: 36, key len: 70001, ciphertext len: 36
-Child process closed.
-Child process started.
-Client said hello.
-plaintext len: 41, key len: 70001, ciphertext len: 41
-Child process closed.
-Child process started.
-Client said hello.
-plaintext len: 16, key len: 70001, ciphertext len: 16
-Child process closed.
-Child process started.
-Client said hello.
-plaintext len: 316, key len: 70001, ciphertext len: 316
-Child process closed.
-Child process started.
-Client said hello.
-plaintext len: 69332, key len: 70001, ciphertext len: 69332
-Child process closed.
-total 2264
-drwxrwx---.  3 diaztr upg23575    889 Dec  6 23:18 ./
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 36, key len: 70001, ciphertext len: 36
+ENC_SERVER: Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 316, key len: 70001, ciphertext len: 316
+ENC_SERVER: Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 41, key len: 70001, ciphertext len: 41
+ENC_SERVER: Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 16, key len: 70001, ciphertext len: 16
+ENC_SERVER: Child process closed.
+ENC_SERVER: Child process started.
+ENC_SERVER: Client said hello.
+ENC_SERVER: plaintext len: 69332, key len: 70001, ciphertext len: 69332
+ENC_SERVER: Child process closed.
+total 1888
+drwxrwx---.  3 diaztr upg23575    919 Dec  7 14:09 ./
 drwx------. 13 diaztr upg23575    339 Dec  6 21:53 ../
 -rwx------.  1 diaztr upg23575 480361 Dec  6 19:39 assignment5-otp-list-of-tests-1 (1).pdf
--rw-rw----.  1 diaztr upg23575     37 Dec  6 23:18 ciphertext1
--rw-rw----.  1 diaztr upg23575    317 Dec  6 23:18 ciphertext2
--rw-rw----.  1 diaztr upg23575     17 Dec  6 23:18 ciphertext3
--rw-rw----.  1 diaztr upg23575  69333 Dec  6 23:18 ciphertext4
--rw-rw----.  1 diaztr upg23575     42 Dec  6 23:18 ciphertext5
--rwxrwx---.  1 diaztr upg23575  14272 Dec  6 23:16 dec_client
--rwx------.  1 diaztr upg23575   4754 Dec  6 23:15 dec_client.c
--rwxrwx---.  1 diaztr upg23575  14368 Dec  6 23:16 dec_server
--rwx------.  1 diaztr upg23575   5281 Dec  6 22:37 dec_server.c
--rwx------.  1 diaztr upg23575   4488 Dec  6 23:07 dialog.c
--rwx------.  1 diaztr upg23575   8196 Dec  6 21:52 .DS_Store
--rwxrwx---.  1 diaztr upg23575  14312 Dec  6 23:16 enc_client
--rwx------.  1 diaztr upg23575   5008 Dec  6 22:39 enc_client.c
--rwxrwx---.  1 diaztr upg23575  14368 Dec  6 23:16 enc_server
--rwx------.  1 diaztr upg23575   5344 Dec  6 22:40 enc_server.c
--rw-rw----.  1 diaztr upg23575     21 Dec  6 23:17 key20
--rw-rw----.  1 diaztr upg23575  70001 Dec  6 23:17 key70000
--rwxrwx---.  1 diaztr upg23575  13160 Dec  6 23:16 keygen
--rwx------.  1 diaztr upg23575   1297 Dec  6 22:40 keygen.c
+-rw-rw----.  1 diaztr upg23575     37 Dec  7 14:09 ciphertext1
+-rw-rw----.  1 diaztr upg23575    317 Dec  7 14:09 ciphertext2
+-rw-rw----.  1 diaztr upg23575     17 Dec  7 14:09 ciphertext3
+-rw-rw----.  1 diaztr upg23575  69333 Dec  7 14:09 ciphertext4
+-rw-rw----.  1 diaztr upg23575     42 Dec  7 14:09 ciphertext5
+-rwxrwx---.  1 diaztr upg23575  14312 Dec  7 14:08 dec_client
+-rwx------.  1 diaztr upg23575   4391 Dec  7 14:07 dec_client.c
+-rwxrwx---.  1 diaztr upg23575  14368 Dec  7 14:08 dec_server
+-rwx------.  1 diaztr upg23575   5329 Dec  7 14:07 dec_server.c
+-rwx------.  1 diaztr upg23575   4520 Dec  7 14:07 dialog.c
+-rwx------.  1 diaztr upg23575   8196 Dec  7 13:34 .DS_Store
+-rwxrwx---.  1 diaztr upg23575  14312 Dec  7 14:08 enc_client
+-rwx------.  1 diaztr upg23575   5112 Dec  7 14:07 enc_client.c
+-rwxrwx---.  1 diaztr upg23575  14368 Dec  7 14:08 enc_server
+-rwx------.  1 diaztr upg23575   5472 Dec  7 14:08 enc_server.c
+-rw-------.  1 diaztr upg23575     37 Dec  7 01:51 .gdb_history
+-rw-rw----.  1 diaztr upg23575     21 Dec  7 14:08 key20
+-rw-rw----.  1 diaztr upg23575  70001 Dec  7 14:08 key70000
+-rwxrwx---.  1 diaztr upg23575  13160 Dec  7 14:08 keygen
+-rwx------.  1 diaztr upg23575   1313 Dec  7 14:08 keygen.c
 -rwx------.  1 diaztr upg23575    463 Dec  6 21:54 makefile
--rw-rw----.  1 diaztr upg23575   3590 Dec  6 23:18 mytestresults
--rwx------.  1 diaztr upg23575   4477 Dec  6 22:41 otp.c
+-rw-rw----.  1 diaztr upg23575   3958 Dec  7 14:09 mytestresults
+-rwx------.  1 diaztr upg23575   4490 Dec  7 14:08 otp.c
 -rwx------.  1 diaztr upg23575   5388 Dec  6 19:39 p5testscript
 -rwx------.  1 diaztr upg23575     37 Dec  6 19:37 plaintext1
 -rwx------.  1 diaztr upg23575    317 Dec  6 19:38 plaintext2
@@ -137,52 +144,61 @@ drwx------.  2 diaztr upg23575     31 Dec  6 20:49 .vscode/
 #-----------------------------------------
 #15 POINTS: concurrent test of decryption - look for 4 plaintext#_a files that match the plaintext# files
 #Ten second sleep, your program must complete in this time
-./p5testscript: line 133: 228951 Segmentation fault      (core dumped) ./dec_client ciphertext1 key70000 $decport > plaintext1_a
-./p5testscript: line 133: 228952 Segmentation fault      (core dumped) ./dec_client ciphertext2 key70000 $decport > plaintext2_a
-./p5testscript: line 133: 228953 Segmentation fault      (core dumped) ./dec_client ciphertext3 key70000 $decport > plaintext3_a
-./p5testscript: line 133: 228954 Segmentation fault      (core dumped) ./dec_client ciphertext4 key70000 $decport > plaintext4_a
-total 2360
-drwxrwx---.  3 diaztr upg23575   1009 Dec  6 23:18 ./
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 36/70001/36
+DEC_SERVER: Child process closed.
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 316/70001/316
+DEC_SERVER: Child process closed.
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 16/70001/16
+DEC_SERVER: Child process closed.
+DEC_SERVER: Child process started.
+DEC_SERVER: Decrypted message: 69332/70001/69332
+DEC_SERVER: Child process closed.
+total 1984
+drwxrwx---.  3 diaztr upg23575   1039 Dec  7 14:09 ./
 drwx------. 13 diaztr upg23575    339 Dec  6 21:53 ../
 -rwx------.  1 diaztr upg23575 480361 Dec  6 19:39 assignment5-otp-list-of-tests-1 (1).pdf
--rw-rw----.  1 diaztr upg23575     37 Dec  6 23:18 ciphertext1
--rw-rw----.  1 diaztr upg23575    317 Dec  6 23:18 ciphertext2
--rw-rw----.  1 diaztr upg23575     17 Dec  6 23:18 ciphertext3
--rw-rw----.  1 diaztr upg23575  69333 Dec  6 23:18 ciphertext4
--rw-rw----.  1 diaztr upg23575     42 Dec  6 23:18 ciphertext5
--rwxrwx---.  1 diaztr upg23575  14272 Dec  6 23:16 dec_client
--rwx------.  1 diaztr upg23575   4754 Dec  6 23:15 dec_client.c
--rwxrwx---.  1 diaztr upg23575  14368 Dec  6 23:16 dec_server
--rwx------.  1 diaztr upg23575   5281 Dec  6 22:37 dec_server.c
--rwx------.  1 diaztr upg23575   4488 Dec  6 23:07 dialog.c
--rwx------.  1 diaztr upg23575   8196 Dec  6 21:52 .DS_Store
--rwxrwx---.  1 diaztr upg23575  14312 Dec  6 23:16 enc_client
--rwx------.  1 diaztr upg23575   5008 Dec  6 22:39 enc_client.c
--rwxrwx---.  1 diaztr upg23575  14368 Dec  6 23:16 enc_server
--rwx------.  1 diaztr upg23575   5344 Dec  6 22:40 enc_server.c
--rw-rw----.  1 diaztr upg23575     21 Dec  6 23:17 key20
--rw-rw----.  1 diaztr upg23575  70001 Dec  6 23:17 key70000
--rwxrwx---.  1 diaztr upg23575  13160 Dec  6 23:16 keygen
--rwx------.  1 diaztr upg23575   1297 Dec  6 22:40 keygen.c
+-rw-rw----.  1 diaztr upg23575     37 Dec  7 14:09 ciphertext1
+-rw-rw----.  1 diaztr upg23575    317 Dec  7 14:09 ciphertext2
+-rw-rw----.  1 diaztr upg23575     17 Dec  7 14:09 ciphertext3
+-rw-rw----.  1 diaztr upg23575  69333 Dec  7 14:09 ciphertext4
+-rw-rw----.  1 diaztr upg23575     42 Dec  7 14:09 ciphertext5
+-rwxrwx---.  1 diaztr upg23575  14312 Dec  7 14:08 dec_client
+-rwx------.  1 diaztr upg23575   4391 Dec  7 14:07 dec_client.c
+-rwxrwx---.  1 diaztr upg23575  14368 Dec  7 14:08 dec_server
+-rwx------.  1 diaztr upg23575   5329 Dec  7 14:07 dec_server.c
+-rwx------.  1 diaztr upg23575   4520 Dec  7 14:07 dialog.c
+-rwx------.  1 diaztr upg23575   8196 Dec  7 13:34 .DS_Store
+-rwxrwx---.  1 diaztr upg23575  14312 Dec  7 14:08 enc_client
+-rwx------.  1 diaztr upg23575   5112 Dec  7 14:07 enc_client.c
+-rwxrwx---.  1 diaztr upg23575  14368 Dec  7 14:08 enc_server
+-rwx------.  1 diaztr upg23575   5472 Dec  7 14:08 enc_server.c
+-rw-------.  1 diaztr upg23575     37 Dec  7 01:51 .gdb_history
+-rw-rw----.  1 diaztr upg23575     21 Dec  7 14:08 key20
+-rw-rw----.  1 diaztr upg23575  70001 Dec  7 14:08 key70000
+-rwxrwx---.  1 diaztr upg23575  13160 Dec  7 14:08 keygen
+-rwx------.  1 diaztr upg23575   1313 Dec  7 14:08 keygen.c
 -rwx------.  1 diaztr upg23575    463 Dec  6 21:54 makefile
--rw-rw----.  1 diaztr upg23575   6379 Dec  6 23:18 mytestresults
--rwx------.  1 diaztr upg23575   4477 Dec  6 22:41 otp.c
+-rw-rw----.  1 diaztr upg23575   6751 Dec  7 14:09 mytestresults
+-rwx------.  1 diaztr upg23575   4490 Dec  7 14:08 otp.c
 -rwx------.  1 diaztr upg23575   5388 Dec  6 19:39 p5testscript
 -rwx------.  1 diaztr upg23575     37 Dec  6 19:37 plaintext1
--rw-rw----.  1 diaztr upg23575      0 Dec  6 23:18 plaintext1_a
+-rw-rw----.  1 diaztr upg23575     37 Dec  7 14:09 plaintext1_a
 -rwx------.  1 diaztr upg23575    317 Dec  6 19:38 plaintext2
--rw-rw----.  1 diaztr upg23575      0 Dec  6 23:18 plaintext2_a
+-rw-rw----.  1 diaztr upg23575    317 Dec  7 14:09 plaintext2_a
 -rwx------.  1 diaztr upg23575     17 Dec  6 19:38 plaintext3
--rw-rw----.  1 diaztr upg23575      0 Dec  6 23:18 plaintext3_a
+-rw-rw----.  1 diaztr upg23575     17 Dec  7 14:09 plaintext3_a
 -rwx------.  1 diaztr upg23575  69333 Dec  6 19:38 plaintext4
--rw-rw----.  1 diaztr upg23575      0 Dec  6 23:18 plaintext4_a
+-rw-rw----.  1 diaztr upg23575  69333 Dec  7 14:09 plaintext4_a
 -rwx------.  1 diaztr upg23575     42 Dec  6 19:38 plaintext5
 -rw-rw----.  1 diaztr upg23575    176 Dec  6 21:21 README.txt
 drwx------.  2 diaztr upg23575     31 Dec  6 20:49 .vscode/
 
 #-----------------------------------------
 #Cleaning up - ignore Operation Not Permitted errors
-./p5testscript: line 141: 228642 Terminated              ./dec_server $decport
-./p5testscript: line 143: 228641 Terminated              ./enc_server $encport
+./p5testscript: line 141: 59507 Terminated              ./dec_server $decport
+./p5testscript: line 143: 59506 Terminated              ./enc_server $encport
 
 #SCRIPT COMPLETE

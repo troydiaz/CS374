@@ -1,7 +1,7 @@
 /*********************************************************************** 
 ** Program Filename: otp.c
 ** Author: Troy Diaz
-** Date: 
+** Date: 12/07/24
 ** Description: 
 *********************************************************************/
 #include <stdlib.h>
@@ -123,7 +123,7 @@ char* decrypt_message(char* ciphertext, char* key) {
     int key_length = strlen(key);
 
     if (ciphertext_length > key_length) {
-        fprintf(stderr, "Key is too short.\n");
+        fprintf(stderr, "OTP: Key is too short.\n");
         exit(1);
     }
 
