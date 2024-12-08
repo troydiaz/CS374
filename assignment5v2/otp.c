@@ -2,7 +2,7 @@
 ** Program Filename: otp.c
 ** Author: Troy Diaz
 ** Date: 12/07/24
-** Description: 
+** Description: Functions in this program is used for encryption and decryption.
 *********************************************************************/
 #include <stdlib.h>
 #include <string.h>
@@ -17,11 +17,10 @@ char* decrypt_message(char* ciphertext, char* key);
 
 /********************************************************************* 
 ** Function: normalize
-** Description: 
+** Description: Maps character to alapabet. 
 ** Parameters: char input_char - character to normalize
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Must be uppercase or space.
+** Post-Conditions: Returns an integer that represents normalized character.
 *********************************************************************/
 char normalize(char input_char) {
     if (input_char == ' ') {
@@ -33,11 +32,10 @@ char normalize(char input_char) {
 
 /********************************************************************* 
 ** Function: project
-** Description: 
+** Description: Maps normalized character index to character.
 ** Parameters: char input_char - character to project
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Input character must be between 0-26.
+** Post-Conditions: Returns corresponding ASCII character.
 *********************************************************************/
 char project(char input_char) {
     if (input_char == 0) {
@@ -49,12 +47,11 @@ char project(char input_char) {
 
 /********************************************************************* 
 ** Function: encrypt_char
-** Description: 
+** Description: Encrypts a single character.
 ** Parameters: char plain_char - character to encrypt,
 **             char key_char - key character
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Plain character and key character must be uppercase or space.
+** Post-Conditions: Returns encrypted character.
 *********************************************************************/
 char encrypt_char(char plain_char, char key_char) {
     char normalized_plain = normalize(plain_char);
@@ -65,12 +62,11 @@ char encrypt_char(char plain_char, char key_char) {
 
 /********************************************************************* 
 ** Function: decrypt_char
-** Description: 
+** Description: Decrypts a single character.
 ** Parameters: char cipher_char - character to decrypt,
 **             char key_char - key character
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Cipher character and key character must be uppercase or space.
+** Post-Conditions: Returns decryped character.
 *********************************************************************/
 char decrypt_char(char cipher_char, char key_char) {
     char normalized_cipher = normalize(cipher_char);
@@ -84,12 +80,12 @@ char decrypt_char(char cipher_char, char key_char) {
 
 /********************************************************************* 
 ** Function: encrypt_message
-** Description: 
+** Description: Encrypts an entire message.
 ** Parameters: char* plaintext - message to encrypt,
 **             char* key - encryption key
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Plaintext and key must be same length, and only contains uppercase letters
+**                 or spaces.
+** Post-Conditions: Returns encrypted message as string.
 *********************************************************************/
 char* encrypt_message(char* plaintext, char* key) {
     int plaintext_length = strlen(plaintext);
@@ -114,7 +110,6 @@ char* encrypt_message(char* plaintext, char* key) {
 ** Description: 
 ** Parameters: char* ciphertext - message to decrypt,
 **             char* key - decryption key
-**
 ** Pre-Conditions: 
 ** Post-Conditions: 
 *********************************************************************/
@@ -137,5 +132,6 @@ char* decrypt_message(char* ciphertext, char* key) {
         decrypted_message[index] = decrypt_char(cipher_char, key_char);
         index++;
     }
+    
     return decrypted_message;
 }

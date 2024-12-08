@@ -2,7 +2,8 @@
 ** Program Filename: enc_client.c
 ** Author: Troy Diaz
 ** Date: 12/07/24
-** Description: 
+** Description: Reads plaintext message and key, connects to encryption server,
+**              sends message and key for encryption, and receives encrypted message.
 *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,11 +22,10 @@ int main(int argument_count, char *argument_values[]);
 
 /********************************************************************* 
 ** Function: error
-** Description: 
-** Parameters: const char *error_msg - error message to display
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Description: Outputs an error message and exits.
+** Parameters: const char *msg - error message string
+** Pre-Conditions: String is passed.
+** Post-Conditions: Program terminates.
 *********************************************************************/
 void error(const char *error_msg) {
     fprintf(stderr, "%s", error_msg);
@@ -34,13 +34,12 @@ void error(const char *error_msg) {
 
 /********************************************************************* 
 ** Function: setupAddressStruct
-** Description: 
+** Description: Initialize server address for connection.
 ** Parameters: struct sockaddr_in *server_address - server address structure,
 **             int port - port to connect to,
 **             char *host_name - hostname of the server
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Port number, host name, and server address is given.
+** Post-Conditions: Server address is filled.
 *********************************************************************/
 void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host_name) {
     memset((char *)server_address, '\0', sizeof(*server_address));
@@ -56,11 +55,10 @@ void setupAddressStruct(struct sockaddr_in *server_address, int port, char *host
 
 /********************************************************************* 
 ** Function: getFileContents
-** Description: 
+** Description: Reads file contents and returns it as a string.
 ** Parameters: char *file_name - name of the file to read
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: File exists.
+** Post-Conditions: Returns a pointer to a string of the file.
 *********************************************************************/
 char* getFileContents(char* file_name) {
     FILE* file = fopen(file_name, "r");
@@ -89,14 +87,17 @@ char* getFileContents(char* file_name) {
 
 /********************************************************************* 
 ** Function: main
-** Description: 
+** Description: Reads plaintext and key, connects to server, sends plaintext
+**              and key for encryption. Prints encrypted message from server.
 ** Parameters: int argument_count - number of arguments,
 **             char *argument_values[] - argument list
-**
-** Pre-Conditions: 
-** Post-Conditions: 
+** Pre-Conditions: Command line arguments are provided for plaintext file, key file, and port
+**                 number.
+** Post-Conditions: Client socket is closed.
 *********************************************************************/
 int main(int argument_count, char *argument_values[]) {
+    
+    // Read message and key from files
     char* message_file_name = argument_values[1];
     char* message_content = getFileContents(message_file_name);
     message_content[strcspn(message_content, "\r\n")] = '\0';
@@ -104,15 +105,18 @@ int main(int argument_count, char *argument_values[]) {
     char* key_file_name = argument_values[2];
     char* key_content = getFileContents(key_file_name);
 
+    // Check length
     if (strlen(message_content) > strlen(key_content)) {
         fprintf(stderr, "ENC_CLIENT: ERROR: The key is too short.\n");
         exit(1);
     }
 
+    // Setup dialog
     char node_identifier[] = "enc_client";
     int debug_mode = 0;
     setup_dialog(node_identifier, debug_mode);
 
+    // Setup connection to server
     int client_socket, port_number;
     struct sockaddr_in server_config;
     char temporary_buffer[256];
@@ -136,6 +140,7 @@ int main(int argument_count, char *argument_values[]) {
         error("ENC_CLIENT: ERROR connecting");
     }
 
+    // Ensure connection
     await_send_message(client_socket, "enc_client hello");
     char* server_response = await_receive_message(client_socket);
     if (strcmp(server_response, "enc_server hello") != 0) {
@@ -144,14 +149,18 @@ int main(int argument_count, char *argument_values[]) {
         exit(1);
     }
 
+    // Send message and key to server
     await_send_message(client_socket, message_content);
     await_send_message(client_socket, key_content);
 
+    // Delay for message processing
     usleep(FLUSH_DELAY + strlen(message_content) * 2);
     char* encrypted_message = await_receive_message(client_socket);
 
+    // Print encrypted message to stdout
     printf("%s\n", encrypted_message);
 
+    // Close socket
     close(client_socket);
 
     return 0;
